@@ -1,75 +1,43 @@
 #!/usr/bin/python3
-"""
-Python script that converts a Markdown file to HTML.
-Parses headings, unordered list, and ordered list syntax.
-"""
-
+'''
+This is a script that codes markdown to HTML
+'''
 import sys
 import os
 import re
 
-
-def parse_heading(line):
-    """
-    Parse Markdown heading syntax and generate HTML tag.
-    """
-    match = re.match(r'^(#+)\s(.*)$', line)
-    if match:
-        level = len(match.group(1))
-        content = match.group(2)
-        return f'<h{level}>{content}</h{level}>\n'
-    return line
-
-
-def parse_unordered_list(line):
-    """
-    Parse Markdown unordered list syntax and generate HTML tag.
-    """
-    match = re.match(r'^-\s(.*)$', line)
-    if match:
-        item = match.group(1)
-        return f'<li>{item}</li>\n'
-    return line
-
-
-def parse_ordered_list(line):
-    """
-    Parse Markdown ordered list syntax and generate HTML tag.
-    """
-    match = re.match(r'^\*\s(.*)$', line)
-    if match:
-        item = match.group(1)
-        return f'<li>{item}</li>\n'
-    return line
-
-
 if __name__ == '__main__':
-    # Check if correct number of arguments provided
-    if len(sys.argv) != 3:
-        print("Usage: ./markdown2html.py README.md README.html",
+
+    # Test that the number of arguments passed is 2
+    if len(sys.argv[1:]) != 2:
+        print('Usage: ./markdown2html.py README.md README.html',
               file=sys.stderr)
         sys.exit(1)
 
-    markdown_file = sys.argv[1]
-    html_file = sys.argv[2]
+    # This store the arguments into variables
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
 
-    # Check if the Markdown file exists
-    if not os.path.exists(markdown_file):
-        print(f"Missing {markdown_file}", file=sys.stderr)
+    # Checks that the markdown file exists and is a file
+    if not (os.path.exists(input_file) and os.path.isfile(input_file)):
+        print(f'Missing {input_file}', file=sys.stderr)
         sys.exit(1)
 
-    # Read Markdown content and parse headings
-    # unordered lists, and ordered lists
-    with open(markdown_file, 'r') as md_file:
-        md_content = md_file.readlines()
+    with open(input_file, encoding='utf-8') as file_1:
+        html_content = []
+        md_content = [line[:-1] for line in file_1.readlines()]
+        for line in md_content:
+            heading = re.split(r'#{1,6} ', line)
+            if len(heading) > 1:
+                # Compute the number of the # present to
+                # determine heading level
+                h_level = len(line[:line.find(heading[1])-1])
+                # Append the html equivalent of the heading
+                html_content.append(
+                    f'<h{h_level}>{heading[1]}</h{h_level}>\n'
+                )
+            else:
+                html_content.append(line)
 
-    html_content = []
-    for line in md_content:
-        html_line = parse_heading(line)
-        html_line = parse_unordered_list(html_line)
-        html_line = parse_ordered_list(html_line)
-        html_content.append(html_line)
-
-    # Write HTML content to output file
-    with open(html_file, 'w') as html_output:
-        html_output.writelines(html_content)
+    with open(output_file, 'w', encoding='utf-8') as file_2:
+        file_2.writelines(html_content)
